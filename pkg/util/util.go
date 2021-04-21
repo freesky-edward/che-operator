@@ -16,7 +16,6 @@ import (
 	"context"
 	"crypto/tls"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"math/rand"
@@ -284,7 +283,7 @@ func getClusterPublicHostnameForOpenshiftV4() (hostname string, err error) {
 	if resp.StatusCode/100 != 2 {
 		message := url + " - " + resp.Status
 		logrus.Errorf("An error occurred when getting API public hostname: %s", message)
-		return "", errors.New(message)
+		return "", fmt.Errorf(message)
 	}
 
 	body, err := ioutil.ReadAll(resp.Body)
@@ -303,7 +302,7 @@ func getClusterPublicHostnameForOpenshiftV4() (hostname string, err error) {
 		hostname = status["apiServerURL"].(string)
 	default:
 		logrus.Errorf("An error occurred when unmarshalling while getting API public hostname: %s", body)
-		return "", errors.New(string(body))
+		return "", fmt.Errorf(string(body))
 	}
 
 	return hostname, nil
