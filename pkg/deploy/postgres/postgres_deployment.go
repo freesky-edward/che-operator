@@ -69,6 +69,21 @@ func (p *Postgres) GetDeploymentSpec(clusterDeployment *appsv1.Deployment) (*app
 							},
 						},
 					},
+					InitContainers: []corev1.Container{
+						{
+							Name:    "volume-permission",
+							Image:   "busybox",
+							Command: []string{"sh", "-c", "chmod 777 /var/lib/pgsql/data"},
+                                                        ImagePullPolicy: "Always",
+							VolumeMounts: []corev1.VolumeMount{
+								{
+									Name:      deploy.DefaultPostgresVolumeClaimName,
+									MountPath: "/var/lib/pgsql/data",
+									SubPath:   "postgress",
+								},
+							},
+						},
+					},
 					Containers: []corev1.Container{
 						{
 							Name:            deploy.PostgresName,
@@ -103,6 +118,7 @@ func (p *Postgres) GetDeploymentSpec(clusterDeployment *appsv1.Deployment) (*app
 								{
 									Name:      deploy.DefaultPostgresVolumeClaimName,
 									MountPath: "/var/lib/pgsql/data",
+									SubPath:   "postgress",
 								},
 							},
 							ReadinessProbe: &corev1.Probe{
@@ -135,9 +151,7 @@ func (p *Postgres) GetDeploymentSpec(clusterDeployment *appsv1.Deployment) (*app
 								TimeoutSeconds:      5,
 							},
 							SecurityContext: &corev1.SecurityContext{
-								Capabilities: &corev1.Capabilities{
-									Drop: []corev1.Capability{"ALL"},
-								},
+								Privileged: &[]bool{true}[0],
 							},
 							Env: []corev1.EnvVar{
 								{
@@ -194,13 +208,13 @@ func (p *Postgres) GetDeploymentSpec(clusterDeployment *appsv1.Deployment) (*app
 			})
 	}
 
-	if !util.IsOpenShift {
-		var runAsUser int64 = 26
-		deployment.Spec.Template.Spec.SecurityContext = &corev1.PodSecurityContext{
-			RunAsUser: &runAsUser,
-			FSGroup:   &runAsUser,
-		}
-	}
+	//if !util.IsOpenShift {
+	//	var runAsUser int64 = 26
+	//	deployment.Spec.Template.Spec.SecurityContext = &corev1.PodSecurityContext{
+	//		RunAsUser: &runAsUser,
+	//		FSGroup:   &runAsUser,
+	//	}
+	//}
 
 	return deployment, nil
 }
