@@ -87,6 +87,10 @@ func syncExposure(deployContext *deploy.DeployContext) (bool, error) {
 	}
 
 	keycloakURL := protocol + "://" + endpoint
+	if cr.Spec.Auth.IdentityProviderURL != "" {
+		keycloakURL = cr.Spec.Auth.IdentityProviderURL
+	}
+
 	if cr.Spec.Auth.IdentityProviderURL != keycloakURL {
 		cr.Spec.Auth.IdentityProviderURL = keycloakURL
 		if err := deploy.UpdateCheCRSpec(deployContext, "Keycloak URL", keycloakURL); err != nil {
